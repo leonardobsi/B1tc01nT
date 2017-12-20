@@ -25,7 +25,9 @@ import com.google.zxing.common.HybridBinarizer;
 import br.com.leeo.jtelegram.File;
 import br.com.leeo.jtelegram.InlineKeyboardButton;
 import br.com.leeo.jtelegram.InlineKeyboardMarkup;
+import br.com.leeo.jtelegram.KeyboardButton;
 import br.com.leeo.jtelegram.LabeledPrice;
+import br.com.leeo.jtelegram.ReplyKeyboardMarkup;
 import br.com.leeo.jtelegram.Update;
 
 public class Main {
@@ -58,7 +60,7 @@ public class Main {
 					
 				}else if( update.getCallback_query() != null ) {
 					
-					answerCallbackQuery(update.getCallback_query(), "Carregando...", false);
+					answerCallbackQuery(update.getCallback_query(), "Working...", false);
 					deleteMessage(update.getCallback_query().getMessage());
 					
 					List<LabeledPrice> prices= new ArrayList<>();
@@ -82,7 +84,18 @@ public class Main {
 					
 				}else if ("/start".equals(update.getMessage().getText())) {
 
-					sendMessage(update.getMessage().getChat().getId(), kit.wallet().currentReceiveAddress().toString() + "\n0.001 BTC - R$ " + (btcPrice * 0.001 * percent) + "\n0.0001 BTC - R$ " + (btcPrice * 0.0001 * percent) , ParseMode.Markdown, new ReplyMarkup());
+					sendMessage(update.getMessage().getChat().getId(), kit.wallet().currentReceiveAddress().toString(), ParseMode.Markdown, new ReplyMarkup());
+					
+					ReplyKeyboardMarkup replyKeyboardMarkup= new ReplyKeyboardMarkup();
+
+					List<KeyboardButton> keyboardButtons= new ArrayList<>();
+					KeyboardButton keyboardButton= new KeyboardButton("Current account balance", false, false);
+					keyboardButtons.add(keyboardButton);
+
+					replyKeyboardMarkup.getKeyboard().add( keyboardButtons );
+					
+					sendMessage(update.getMessage().getChat().getId(), "Balance: " + kit.wallet().getBalance().toString()
+							+ " BTC\n\n0.001 BTC - R$ " + (btcPrice * 0.001 * percent) + "\n0.0001 BTC - R$ " + (btcPrice * 0.0001 * percent) , ParseMode.Markdown, replyKeyboardMarkup);				
 					
 				}else if( update.getMessage().getSuccessful_payment() != null ) {
 					
@@ -93,11 +106,11 @@ public class Main {
 
 						Wallet.SendResult result = kit.wallet().sendCoins(kit.peerGroup(), to, value);
 						
-						sendMessage(update.getMessage().getChat().getId(), "BitCoins enviados. Hash da transação: " + result.tx.getHashAsString(), ParseMode.Markdown, new ReplyMarkup());
+						sendMessage(update.getMessage().getChat().getId(), "BitCoins sent. Transaction hash: " + result.tx.getHashAsString(), ParseMode.Markdown, new ReplyMarkup());
 
 					} catch (InsufficientMoneyException e) {
 
-						sendMessage(update.getMessage().getChat().getId(), "Erro. Saldo insuficiente na carteira.", ParseMode.Markdown, new ReplyMarkup());
+						sendMessage(update.getMessage().getChat().getId(), "Not enough balance in wallet.", ParseMode.Markdown, new ReplyMarkup());
 					}
 					
 				}else if (update.getMessage().getPhoto() != null) {
@@ -115,7 +128,7 @@ public class Main {
 						InlineKeyboardMarkup inlineKeyboardMarkup= new InlineKeyboardMarkup();
 						
 						List<InlineKeyboardButton> inlineKeyboardButtons= new ArrayList<>();
-						// inlineKeyboardButtons.add(new InlineKeyboardButton("0.01 BTC", "@@"));
+						// inlineKeyboardButtons.add(new InlineKeyboardButton("0.01 BTC", "0.01"));
 						inlineKeyboardButtons.add(new InlineKeyboardButton("0.001 BTC", "0.001"));
 						inlineKeyboardButtons.add(new InlineKeyboardButton("0.0001 BTC", "0.0001"));
 						
@@ -125,8 +138,13 @@ public class Main {
 
 					} catch (Exception e) {
 
-						sendMessage(update.getMessage().getChat().getId(), "Tente novamente, carteira inválida.", ParseMode.Markdown, new ReplyMarkup());
+						sendMessage(update.getMessage().getChat().getId(), "Try again, invalid wallet address.", ParseMode.Markdown, new ReplyMarkup());
 					}
+				}else if( "Current account balance".equals( update.getMessage().getText() ) ){
+					
+					sendMessage(update.getMessage().getChat().getId(), "Balance: " + kit.wallet().getBalance().toString()
+							+ " BTC\n\n0.001 BTC - R$ " + (btcPrice * 0.001 * percent) + "\n0.0001 BTC - R$ " + (btcPrice * 0.0001 * percent) , ParseMode.Markdown, new ReplyMarkup());				
+					
 				}else {
 					
 			        try {
@@ -144,7 +162,7 @@ public class Main {
 						
 					} catch (AddressFormatException e) {
 						
-						sendMessage(update.getMessage().getChat().getId(), "Tente novamente, carteira inválida.", ParseMode.Markdown, new ReplyMarkup());
+						sendMessage(update.getMessage().getChat().getId(), "Try again, invalid wallet address.", ParseMode.Markdown, new ReplyMarkup());
 					}
 				}
 			}
